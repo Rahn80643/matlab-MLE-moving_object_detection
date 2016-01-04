@@ -17,10 +17,11 @@ sprintf('size of video, v: ')
 size(v)
 
 SetX = 460; SetY = 470;
+RGBchannel = 2;
 
 % Read frames from video and save them as jpeg format images (first 100 frames)
 for i = 1: frames
-   result(i) = v(SetX, SetY, 3 , i); 
+   result(i) = v(SetX, SetY, RGBchannel , i); 
    %imwrite(v(:, :, : , i), strcat('frame-', num2str(i), '.jpg'));
 end
 size(result)
@@ -44,14 +45,14 @@ view(90, -90);
 % predict if there's a moving object in the rest of the frames.
 % use 3*sigma as the threshold
 
-for i = (frames+1) : endFrames
+for i = 1 : endFrames
     subplot(2,2,4);
     imshow(v(:, :, :, i))
     hold off;
     %if( v(460, 470, 3 , i) < 75 ) sprintf('s Moving object appeared in %d', i)
     for x = SetX: SetX
         for y = SetY: SetY
-            if( v(x, y, 3 , i) < mu-sigmaSquared*2 ) 
+            if( (v(x, y, RGBchannel , i) < mu-sigmaSquared) || ( v(x, y, RGBchannel , i) > mu+sigmaSquared)) 
                 %sprintf('s Moving object appeared in %d', i)
                 hold on;
                 plot(x, y, 'rx')
@@ -59,22 +60,11 @@ for i = (frames+1) : endFrames
                 %v(460, 470, 2, i) = 255;
                 %v(460, 470, 3, i) = 255;
             end
-
-            %if( v(460, 470, 3 , i) > 150 ) sprintf('b Moving object appeared in %d', i)
-            if( v(x, y, 3 , i) > mu+sigmaSquared*2 ) 
-                %sprintf('b Moving object appeared in %d', i)
-                hold on;
-                plot(x, y, 'rx')
-                %v(460, 470, 1, i) = 255;
-                %v(460, 470, 2, i) = 255;
-                %v(460, 470, 3, i) = 255;
-            end
         end
-
     end
     pause(0.01);
     subplot(2,2,3);
-    wholeResult(i) = display(SetX, SetY, 3, i);
+    wholeResult(i) = display(SetX, SetY, RGBchannel, i);
     plot(1:endFrames, wholeResult, 'k-');
     title('b channel for the whole 900 frames');
 end
