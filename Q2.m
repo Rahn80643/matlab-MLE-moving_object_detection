@@ -14,14 +14,17 @@ result = zeros(1, frames);
 wholeResult = zeros(1, endFrames);
 
 sprintf('size of video, v: ')
-size(v)
+size(v)                                                                     % Format of v: #y, #x, #channel, #frames, maybe column major
+maxX = size(v,2)
+maxY = size(v,1)
 
-SetX = 460; SetY = 470;
-RGBchannel = 2;
+
+SetX = 800; SetY = 470;
+RGBchannel = 1;
 
 % Read frames from video and save them as jpeg format images (first 100 frames)
 for i = 1: frames
-   result(i) = v(SetX, SetY, RGBchannel , i); 
+   result(i) = v(SetY, SetX, RGBchannel , i); 
    %imwrite(v(:, :, : , i), strcat('frame-', num2str(i), '.jpg'));
 end
 size(result)
@@ -52,7 +55,7 @@ for i = 1 : endFrames
     %if( v(460, 470, 3 , i) < 75 ) sprintf('s Moving object appeared in %d', i)
     for x = SetX: SetX
         for y = SetY: SetY
-            if( (v(x, y, RGBchannel , i) < mu-sigmaSquared) || ( v(x, y, RGBchannel , i) > mu+sigmaSquared)) 
+            if( (v(y, x, RGBchannel , i) < mu-sigmaSquared) || ( v(y, x, RGBchannel , i) > mu+sigmaSquared)) 
                 %sprintf('s Moving object appeared in %d', i)
                 hold on;
                 plot(x, y, 'rx')
@@ -63,13 +66,10 @@ for i = 1 : endFrames
         end
     end
     pause(0.01);
+    % show b-channel value of the whole video
     subplot(2,2,3);
-    wholeResult(i) = display(SetX, SetY, RGBchannel, i);
+    wholeResult(i) = display(SetY, SetX, RGBchannel, i);
     plot(1:endFrames, wholeResult, 'k-');
     title('b channel for the whole 900 frames');
 end
 
-
-% show b-channel value of the whole video
-mu - sigmaSquared*3;
-mu + sigmaSquared*3;
