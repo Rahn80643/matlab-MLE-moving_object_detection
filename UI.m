@@ -91,25 +91,52 @@ checkX = str2double(get(handles.posX,'string'))
 checkY = str2double(get(handles.posY,'string'))
 channel = str2double(get(handles.editChannel, 'string'))
 
+
+
     vr = VideoReader('linSenRd.mov');
-    %vr = VideoReader('MAH00911.MP4');
     v = read(vr);
     size(v)                                                                 % Format of v: #y, #x, #channel, #frames, maybe column major
-
-    maxX = size(v,2)
-    maxY = size(v,1)
+    
+    if(frameCntTr > vr.NumberOfFrames || frameCntTr < 1)
+        frameCntTr = 100;
+        sprintf('Training frame count is illegal, modified into 100!\n')
+    end
+    if(checkX > size(v, 2) || checkX < 1)
+        checkX = size(v, 2)/ 2 ;
+        sprintf('X cordinator is out of the border, modified into half of the frame\n')
+    end 
+    if(checkY > size(v, 1) || checkY < 1)
+        checkY = size(v, 1)/ 2 ;
+        sprintf('Y cordinator is out of the border, modified into half of the frame\n')
+    end
+    if(channel > 3 || channel < 0)
+        channel = 3;
+        sprintf('Channel is illegal, modified as 3(blue channel)\n')
+    end
+    if(thresSize < 1)
+        thresSize = 7;
+        sprintf('Threshold must be positive!\n')
+    end
+    
+    maxX = size(v,2);
+    maxY = size(v,1);
     display = v;
-    endFrames = vr.NumberOfFrames                                           % Get the total frames of the video
+    endFrames = vr.NumberOfFrames;                                          % Get the total frames of the video
     frames = frameCntTr;                                                    % Set training frames
     result = zeros(maxX, maxY, frames);
     wholeResult = zeros(1, endFrames);
     sprintf('size of video, v: ');
-
-
     xStart = 1; yStart = 1;
     SetX = maxX; SetY = maxY;
     RGBchannel = channel;
     size(result);
+    
+    % Display parameters
+    set(handles.textFramesTr, 'string', frames);
+    set(handles.textThres, 'string', thresSize);
+    set(handles.textPositionX, 'string', checkX);
+    set(handles.textPositionY, 'string', checkY);
+    set(handles.textChannel, 'string', RGBchannel);
 
     % Read frames from video and save them as jpeg format images (first 100 frames)
     for x = 1: maxX
@@ -121,41 +148,44 @@ channel = str2double(get(handles.editChannel, 'string'))
         end
     end
 
-    % show b-channel value plot
-    %plot(1:1:frames, result(1:frames), 'k-');
-    %title('b channel for the first 100 frames');
-
-    % compute gaussian distribution via the first-100-frame, get the mean(mu),
-    % and sigma.
-    %subplot(2,2,2);
-
+    % compute gaussian distribution via the first-#frames-frame, get the mean(mu),
     mu = zeros(maxX, maxY);
     sigmaSquared = zeros(maxX, maxY);
     for x = 1: maxX
         for y = 1: maxY
             mu(x, y) = sum(result(x, y, 1:frames)) / length(result(x, y, 1:frames));
             sigmaSquared(x, y) = sum( (result(x, y, 1:frames) - mu(x, y)).^2 )/ length(result(x, y, 1:frames));
-    %        range = (mu - sqrt(sigmaSquared)) :0.1: (mu + sqrt(sigmaSquared));  
         end
     end
 
-    sprintf('^^^^^^');
-    size(mu);
-    size(sigmaSquared);
-    %mu = sum(result(1:frames)) / length(result(1:frames))
-    %sigmaSquared = sum( (result(1:frames) - mu).^2 )/ length(result(1:frames))
-    %range = (mu - sqrt(sigmaSquared)) :0.1: (mu + sqrt(sigmaSquared));
-    % draw the gaussian distribution
+    % draw the gaussian distribution of #channel
     subplot(2,3,4);
     range = (mu(checkX, checkY) - sqrt(sigmaSquared(checkX, checkY))) :0.1: (mu(checkX, checkY) + sqrt(sigmaSquared(checkX, checkY))); 
-    plot(range, normal_distribution(range, mu(checkX, checkY), sqrt(sigmaSquared(checkX, checkY))));
+    
+    if(channel == 1) plot(range, normal_distribution(range, mu(checkX, checkY), sqrt(sigmaSquared(checkX, checkY))), 'r-');
+    else if(channel == 2) plot(range, normal_distribution(range, mu(checkX, checkY), sqrt(sigmaSquared(checkX, checkY))), 'g-');
+        else plot(range, normal_distribution(range, mu(checkX, checkY), sqrt(sigmaSquared(checkX, checkY))), 'b-');
+        end
+    end
     title('gaussian MLE figure');
-    view(90, -90);
+    xlabel('Channel value');
+    ylabel('Probability');
+    text(checkX/2, checkY/2, 'str1');
+    set(handles.textMean, 'string', mu(checkX, checkY));
+    set(handles.textVariance, 'string', sigmaSquared(checkX, checkY));
+    set(handles.textUpper, 'string', mu(checkX, checkY) - thresSize* sigmaSquared(checkX, checkY));
+    set(handles.textLower, 'string', mu(checkX, checkY) + thresSize* sigmaSquared(checkX, checkY));
+    %view(-90, 90);
+    %view(90, -90);
 
     % predict if there's a moving object in the rest of the frames.
     % use thresSize*sigma as the threshold
+    
+    subplot(2,3,5);
+
 
     for i = 1 : endFrames
+        set(handles.textCurrentFrame, 'string', i);
         subplot(2,3,6);
         %imshow(v(:, :, :, i))
        % hold off;
@@ -177,9 +207,13 @@ channel = str2double(get(handles.editChannel, 'string'))
         subplot(2,3,5);
         wholeResult(i) = display(470, 460, RGBchannel, i);
         plot(1:endFrames, wholeResult, 'k-');
+        title('Current channel value');
+        xlabel('Current frame');
+        ylabel('Channel value');
     %    title('b channel for the whole 900 frames');
-        pause(0.001)
+        pause(0.0001)
     end
+clc; clear;
 
 
 
