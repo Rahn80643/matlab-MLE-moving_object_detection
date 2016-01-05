@@ -6,6 +6,7 @@ clc; clear; close all;
 %   Developed with matlab 2012b
  
 vr = VideoReader('linSenRd.mov');
+%vr = VideoReader('MAH00911.MP4');
 v = read(vr);
 size(v)                                                                     % Format of v: #y, #x, #channel, #frames, maybe column major
 
@@ -13,7 +14,7 @@ maxX = size(v,2)
 maxY = size(v,1)
 display = v;
 endFrames = vr.NumberOfFrames                                               % Get the total frames of the video
-frames = 100;                                                               % Set training frames
+frames = 50;                                                               % Set training frames
 result = zeros(maxX, maxY, frames);
 wholeResult = zeros(1, endFrames);
 
@@ -90,15 +91,14 @@ for i = 1 : endFrames
                 v(y, x, 1, i) = 255;
                 v(y, x, 2, i) = 255;
                 v(y, x, 3, i) = 255;
-            end
-            
+            end       
         end
     end
     imshow(v(:, :, :, i))
     % show b-channel value of the whole video
-%    subplot(2,2,3);
-%    wholeResult(i) = display(SetY, SetX, RGBchannel, i);
-%    plot(1:endFrames, wholeResult, 'k-');
+    subplot(2,2,3);
+    wholeResult(i) = display(470, 460, RGBchannel, i);
+    plot(1:endFrames, wholeResult, 'k-');
 %    title('b channel for the whole 900 frames');
     pause(0.001)
 end
