@@ -23,7 +23,7 @@ function varargout = UI(varargin)
 
 % Edit the above text to modify the response to help UI
 
-% Last Modified by GUIDE v2.5 05-Jan-2016 22:36:29
+% Last Modified by GUIDE v2.5 09-Jan-2016 14:38:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -93,7 +93,13 @@ channel = str2double(get(handles.editChannel, 'string'))
 
 
 
-    vr = VideoReader('linSenRd.mov');
+    %vr = VideoReader('ttt.mp4');
+    %if(isempty(get(handles.textPath, 'string'))) 
+        vr = VideoReader(get(handles.textPath, 'string'));
+    %else
+    %    vr = VideoReader('linSenRd.mov');
+    %end
+        
     v = read(vr);
     size(v)                                                                 % Format of v: #y, #x, #channel, #frames, maybe column major
     
@@ -344,3 +350,13 @@ function editChannel_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in browseBtn.
+function browseBtn_Callback(hObject, eventdata, handles)
+% hObject    handle to browseBtn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[filename pathname] = uigetfile({'*.*'}, 'File Selector');
+fullpathname = strcat(pathname, filename);
+set(handles.textPath, 'String', fullpathname);
